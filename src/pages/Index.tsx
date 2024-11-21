@@ -7,6 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { TranscriptionUploader } from "@/components/TranscriptionUploader";
 import { TranslationDropdown } from "@/components/TranslationDropdown";
 import { AnimatedFooter } from "@/components/AnimatedFooter";
+import { copyToClipboard, downloadTranscription } from "@/utils/transcriptionUtils";
 
 const API_KEY = 'ca95804f5de7464e9ea41d795ff27116';
 const OPENAI_API_KEY = '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';
@@ -117,7 +118,6 @@ const Index = () => {
       return;
     }
 
-    // Implementation for blog post generation will go here
     toast({
       title: "Coming soon",
       description: "Blog post generation will be available soon"
@@ -134,7 +134,6 @@ const Index = () => {
       return;
     }
 
-    // Implementation for social post generation will go here
     toast({
       title: "Coming soon",
       description: "Social post generation will be available soon"
@@ -151,7 +150,6 @@ const Index = () => {
       return;
     }
 
-    // Implementation for translation will go here
     toast({
       title: "Coming soon",
       description: "Translation will be available soon"
@@ -233,11 +231,11 @@ const Index = () => {
               </div>
             </CardContent>
             <CardFooter className="flex gap-4 flex-wrap">
-              <Button onClick={copyToClipboard} variant="outline">
+              <Button onClick={() => copyToClipboard(transcriptionResult)} variant="outline">
                 <Copy className="mr-2 h-4 w-4" />
                 Copy Text
               </Button>
-              <Button onClick={downloadTranscription} variant="outline">
+              <Button onClick={() => downloadTranscription(transcriptionResult)} variant="outline">
                 <Download className="mr-2 h-4 w-4" />
                 Download
               </Button>
