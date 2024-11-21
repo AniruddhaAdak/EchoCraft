@@ -27,6 +27,7 @@ export const TranscriptionUploader = ({ onFileSelect }: TranscriptionUploaderPro
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const chunksRef = useRef<BlobPart[]>([]);
 
   const validateFile = (file: File) => {
     if (supportedFormats.includes(file.type)) {
@@ -60,33 +61,36 @@ export const TranscriptionUploader = ({ onFileSelect }: TranscriptionUploaderPro
   const startRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ 
-        audio: true,
-        video: false 
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          sampleRate: 44100
+        }
       });
       
-      const options = {
-        mimeType: 'audio/webm;codecs=opus'
-      };
+      chunksRef.current = [];
       
-      const mediaRecorder = new MediaRecorder(stream, options);
-      const chunks: BlobPart[] = [];
+      const mediaRecorder = new MediaRecorder(stream, {
+        mimeType: 'audio/webm;codecs=opus'
+      });
 
       mediaRecorder.ondataavailable = (e) => {
         if (e.data.size > 0) {
-          chunks.push(e.data);
+          chunksRef.current.push(e.data);
         }
       };
 
       mediaRecorder.onstop = () => {
-        const blob = new Blob(chunks, { type: 'audio/webm' });
+        const blob = new Blob(chunksRef.current, { type: 'audio/webm' });
         const recordedFile = new File([blob], "recorded-audio.webm", { type: 'audio/webm' });
         setFile(recordedFile);
         onFileSelect(recordedFile);
         stream.getTracks().forEach(track => track.stop());
+        chunksRef.current = [];
       };
 
       mediaRecorderRef.current = mediaRecorder;
-      mediaRecorder.start();
+      mediaRecorder.start(1000); // Record in 1-second chunks
       setIsRecording(true);
       
       toast({
@@ -104,7 +108,7 @@ export const TranscriptionUploader = ({ onFileSelect }: TranscriptionUploaderPro
   };
 
   const stopRecording = () => {
-    if (mediaRecorderRef.current) {
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
       mediaRecorderRef.current.stop();
       setIsRecording(false);
       toast({
@@ -150,7 +154,10 @@ export const TranscriptionUploader = ({ onFileSelect }: TranscriptionUploaderPro
       </div>
       <div className="mt-4 flex justify-center">
         <Button 
-          onClick={toggleRecording}
+          onClick={(e) => {
+            e.stopPropagation();
+            toggleRecording();
+          }}
           variant={isRecording ? "destructive" : "outline"}
           className="flex items-center gap-2"
         >
