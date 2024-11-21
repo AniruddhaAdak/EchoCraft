@@ -1,22 +1,15 @@
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { Upload, Copy, Download, Mic, Loader2 } from "lucide-react";
-import { useToast } from "@/components/ui/use-toast";
-import { Badge } from "@/components/ui/badge";
+import { Copy, Download, FileText, MessageSquare, Loader2, Globe } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { TranscriptionUploader } from "@/components/TranscriptionUploader";
+import { TranslationDropdown } from "@/components/TranslationDropdown";
+import { AnimatedFooter } from "@/components/AnimatedFooter";
 
 const API_KEY = 'ca95804f5de7464e9ea41d795ff27116';
-
-const supportedFormats = [
-  'audio/mpeg',      // .mp3
-  'audio/wav',       // .wav
-  'audio/x-wav',     // .wav alternative
-  'audio/mp4',       // .m4a
-  'audio/flac',      // .flac
-  'audio/ogg',       // .ogg
-  'audio/webm'       // .webm
-];
+const OPENAI_API_KEY = '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';
 
 const Index = () => {
   const [file, setFile] = useState<File | null>(null);
@@ -24,34 +17,10 @@ const Index = () => {
   const [status, setStatus] = useState("");
   const [transcriptionResult, setTranscriptionResult] = useState("");
   const [isTranscribing, setIsTranscribing] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
-  const validateFile = (file: File) => {
-    if (supportedFormats.includes(file.type)) {
-      return true;
-    }
-    toast({
-      variant: "destructive",
-      title: "Invalid file format",
-      description: "Please upload an audio file in MP3, WAV, M4A, FLAC, OGG, or WEBM format."
-    });
-    return false;
-  };
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    const droppedFile = e.dataTransfer.files[0];
-    if (validateFile(droppedFile)) {
-      setFile(droppedFile);
-    }
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = e.target.files?.[0];
-    if (selectedFile && validateFile(selectedFile)) {
-      setFile(selectedFile);
-    }
+  const handleFileSelect = (selectedFile: File) => {
+    setFile(selectedFile);
   };
 
   const transcribeAudio = async () => {
@@ -138,35 +107,54 @@ const Index = () => {
     }
   };
 
-  const copyToClipboard = async () => {
-    try {
-      await navigator.clipboard.writeText(transcriptionResult);
-      toast({
-        title: "Copied!",
-        description: "Text copied to clipboard"
-      });
-    } catch (err) {
+  const generateBlogPost = async () => {
+    if (!transcriptionResult) {
       toast({
         variant: "destructive",
-        title: "Error",
-        description: "Failed to copy text"
+        title: "No transcription",
+        description: "Please transcribe your audio first"
       });
+      return;
     }
+
+    // Implementation for blog post generation will go here
+    toast({
+      title: "Coming soon",
+      description: "Blog post generation will be available soon"
+    });
   };
 
-  const downloadTranscription = () => {
-    const blob = new Blob([transcriptionResult], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'transcription.txt';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+  const generateSocialPost = async () => {
+    if (!transcriptionResult) {
+      toast({
+        variant: "destructive",
+        title: "No transcription",
+        description: "Please transcribe your audio first"
+      });
+      return;
+    }
+
+    // Implementation for social post generation will go here
     toast({
-      title: "Downloaded!",
-      description: "Your transcription has been downloaded"
+      title: "Coming soon",
+      description: "Social post generation will be available soon"
+    });
+  };
+
+  const handleTranslation = async (language: string) => {
+    if (!transcriptionResult) {
+      toast({
+        variant: "destructive",
+        title: "No transcription",
+        description: "Please transcribe your audio first"
+      });
+      return;
+    }
+
+    // Implementation for translation will go here
+    toast({
+      title: "Coming soon",
+      description: "Translation will be available soon"
     });
   };
 
@@ -184,32 +172,9 @@ const Index = () => {
             <CardDescription>Drag and drop your audio file or click to select</CardDescription>
           </CardHeader>
           <CardContent>
-            <div
-              onDragOver={(e) => e.preventDefault()}
-              onDrop={handleDrop}
-              onClick={() => fileInputRef.current?.click()}
-              className="border-2 border-dashed border-purple-200 rounded-lg p-8 text-center cursor-pointer
-                         hover:border-purple-400 transition-colors duration-300"
-            >
-              <input
-                ref={fileInputRef}
-                type="file"
-                onChange={handleFileChange}
-                accept=".mp3,.wav,.m4a,.flac,.ogg,.webm"
-                className="hidden"
-              />
-              <Upload className="mx-auto mb-4 text-purple-500" size={40} />
-              <p className="text-purple-600 mb-2">{file ? file.name : "Click or drag file here"}</p>
-              <div className="flex flex-wrap gap-2 justify-center">
-                {supportedFormats.map(format => (
-                  <Badge key={format} variant="secondary">
-                    {format.split('/')[1]}
-                  </Badge>
-                ))}
-              </div>
-            </div>
+            <TranscriptionUploader onFileSelect={handleFileSelect} />
           </CardContent>
-          <CardFooter className="flex justify-center">
+          <CardFooter className="flex gap-4 flex-wrap justify-center">
             <Button
               onClick={transcribeAudio}
               disabled={!file || isTranscribing}
@@ -221,11 +186,26 @@ const Index = () => {
                   Transcribing...
                 </>
               ) : (
-                <>
-                  <Mic className="mr-2 h-4 w-4" />
-                  Start Transcription
-                </>
+                "Start Transcription"
               )}
+            </Button>
+            <Button
+              onClick={generateBlogPost}
+              variant="outline"
+              className="w-full sm:w-auto"
+              disabled={!transcriptionResult}
+            >
+              <FileText className="mr-2 h-4 w-4" />
+              Generate Blog
+            </Button>
+            <Button
+              onClick={generateSocialPost}
+              variant="outline"
+              className="w-full sm:w-auto"
+              disabled={!transcriptionResult}
+            >
+              <MessageSquare className="mr-2 h-4 w-4" />
+              Create Social Post
             </Button>
           </CardFooter>
         </Card>
@@ -242,7 +222,10 @@ const Index = () => {
         {transcriptionResult && (
           <Card className="animate-scale-in">
             <CardHeader>
-              <CardTitle>Transcription Result</CardTitle>
+              <CardTitle className="flex items-center justify-between">
+                <span>Transcription Result</span>
+                <TranslationDropdown onLanguageSelect={handleTranslation} />
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="bg-purple-50 p-4 rounded-lg max-h-[400px] overflow-y-auto">
@@ -258,10 +241,15 @@ const Index = () => {
                 <Download className="mr-2 h-4 w-4" />
                 Download
               </Button>
+              <Button onClick={() => handleTranslation("en")} variant="outline">
+                <Globe className="mr-2 h-4 w-4" />
+                Translate
+              </Button>
             </CardFooter>
           </Card>
         )}
       </div>
+      <AnimatedFooter />
     </div>
   );
 };
