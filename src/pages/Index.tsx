@@ -2,15 +2,15 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { Copy, Download, FileText, MessageSquare, Loader2, Globe } from "lucide-react";
+import { FileText, MessageSquare, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { TranscriptionUploader } from "@/components/TranscriptionUploader";
-import { TranslationDropdown } from "@/components/TranslationDropdown";
 import { AnimatedFooter } from "@/components/AnimatedFooter";
-import { copyToClipboard, downloadTranscription } from "@/utils/transcriptionUtils";
+import { TranscriptionResult } from "@/components/TranscriptionResult";
+import { generateBlogPost, generateSocialPost } from "@/utils/openaiUtils";
+import { useNavigate } from "react-router-dom";
 
 const API_KEY = 'ca95804f5de7464e9ea41d795ff27116';
-const OPENAI_API_KEY = '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';
 
 const Index = () => {
   const [file, setFile] = useState<File | null>(null);
@@ -19,6 +19,7 @@ const Index = () => {
   const [transcriptionResult, setTranscriptionResult] = useState("");
   const [isTranscribing, setIsTranscribing] = useState(false);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const handleFileSelect = (selectedFile: File) => {
     setFile(selectedFile);
@@ -108,7 +109,7 @@ const Index = () => {
     }
   };
 
-  const generateBlogPost = async () => {
+  const handleBlogPost = async () => {
     if (!transcriptionResult) {
       toast({
         variant: "destructive",
@@ -118,13 +119,15 @@ const Index = () => {
       return;
     }
 
-    toast({
-      title: "Coming soon",
-      description: "Blog post generation will be available soon"
-    });
+    try {
+      const blogPost = await generateBlogPost(transcriptionResult);
+      navigate("/posts", { state: { type: "blog", content: blogPost } });
+    } catch (error) {
+      // Error already handled in generateBlogPost
+    }
   };
 
-  const generateSocialPost = async () => {
+  const handleSocialPost = async () => {
     if (!transcriptionResult) {
       toast({
         variant: "destructive",
@@ -134,10 +137,12 @@ const Index = () => {
       return;
     }
 
-    toast({
-      title: "Coming soon",
-      description: "Social post generation will be available soon"
-    });
+    try {
+      const socialPost = await generateSocialPost(transcriptionResult);
+      navigate("/posts", { state: { type: "social", content: socialPost } });
+    } catch (error) {
+      // Error already handled in generateSocialPost
+    }
   };
 
   const handleTranslation = async (language: string) => {
@@ -188,7 +193,7 @@ const Index = () => {
               )}
             </Button>
             <Button
-              onClick={generateBlogPost}
+              onClick={handleBlogPost}
               variant="outline"
               className="w-full sm:w-auto"
               disabled={!transcriptionResult}
@@ -197,7 +202,7 @@ const Index = () => {
               Generate Blog
             </Button>
             <Button
-              onClick={generateSocialPost}
+              onClick={handleSocialPost}
               variant="outline"
               className="w-full sm:w-auto"
               disabled={!transcriptionResult}
@@ -218,33 +223,10 @@ const Index = () => {
         )}
 
         {transcriptionResult && (
-          <Card className="animate-scale-in">
-            <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                <span>Transcription Result</span>
-                <TranslationDropdown onLanguageSelect={handleTranslation} />
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="bg-purple-50 p-4 rounded-lg max-h-[400px] overflow-y-auto">
-                {transcriptionResult}
-              </div>
-            </CardContent>
-            <CardFooter className="flex gap-4 flex-wrap">
-              <Button onClick={() => copyToClipboard(transcriptionResult)} variant="outline">
-                <Copy className="mr-2 h-4 w-4" />
-                Copy Text
-              </Button>
-              <Button onClick={() => downloadTranscription(transcriptionResult)} variant="outline">
-                <Download className="mr-2 h-4 w-4" />
-                Download
-              </Button>
-              <Button onClick={() => handleTranslation("en")} variant="outline">
-                <Globe className="mr-2 h-4 w-4" />
-                Translate
-              </Button>
-            </CardFooter>
-          </Card>
+          <TranscriptionResult 
+            transcriptionResult={transcriptionResult}
+            onTranslate={handleTranslation}
+          />
         )}
       </div>
       <AnimatedFooter />
