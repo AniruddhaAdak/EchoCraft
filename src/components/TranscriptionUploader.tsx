@@ -59,11 +59,24 @@ export const TranscriptionUploader = ({ onFileSelect }: TranscriptionUploaderPro
 
   const startRecording = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mediaRecorder = new MediaRecorder(stream);
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        audio: true,
+        video: false 
+      });
+      
+      const options = {
+        mimeType: 'audio/webm;codecs=opus'
+      };
+      
+      const mediaRecorder = new MediaRecorder(stream, options);
       const chunks: BlobPart[] = [];
 
-      mediaRecorder.ondataavailable = (e) => chunks.push(e.data);
+      mediaRecorder.ondataavailable = (e) => {
+        if (e.data.size > 0) {
+          chunks.push(e.data);
+        }
+      };
+
       mediaRecorder.onstop = () => {
         const blob = new Blob(chunks, { type: 'audio/webm' });
         const recordedFile = new File([blob], "recorded-audio.webm", { type: 'audio/webm' });
@@ -81,10 +94,11 @@ export const TranscriptionUploader = ({ onFileSelect }: TranscriptionUploaderPro
         description: "Click the mic button again to stop recording"
       });
     } catch (error) {
+      console.error('Recording error:', error);
       toast({
         variant: "destructive",
         title: "Recording failed",
-        description: "Please make sure you have a microphone connected"
+        description: "Please make sure you have a microphone connected and have granted permission"
       });
     }
   };

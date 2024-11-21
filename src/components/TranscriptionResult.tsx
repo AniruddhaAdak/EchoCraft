@@ -3,6 +3,9 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { Copy, Download, Globe } from "lucide-react";
 import { TranslationDropdown } from "./TranslationDropdown";
 import { copyToClipboard, downloadTranscription } from "@/utils/transcriptionUtils";
+import { translateText } from "@/utils/openaiUtils";
+import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
 
 interface TranscriptionResultProps {
   transcriptionResult: string;
@@ -10,12 +13,35 @@ interface TranscriptionResultProps {
 }
 
 export const TranscriptionResult = ({ transcriptionResult, onTranslate }: TranscriptionResultProps) => {
+  const [isTranslating, setIsTranslating] = useState(false);
+  const { toast } = useToast();
+
+  const handleTranslate = async (language: string) => {
+    try {
+      setIsTranslating(true);
+      const translatedText = await translateText(transcriptionResult, language);
+      onTranslate(translatedText);
+      toast({
+        title: "Translation complete",
+        description: "Your text has been translated successfully"
+      });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Translation failed",
+        description: "Please try again later"
+      });
+    } finally {
+      setIsTranslating(false);
+    }
+  };
+
   return (
     <Card className="animate-scale-in">
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
           <span>Transcription Result</span>
-          <TranslationDropdown onLanguageSelect={onTranslate} />
+          <TranslationDropdown onLanguageSelect={handleTranslate} />
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -32,9 +58,13 @@ export const TranscriptionResult = ({ transcriptionResult, onTranslate }: Transc
           <Download className="mr-2 h-4 w-4" />
           Download
         </Button>
-        <Button onClick={() => onTranslate("en")} variant="outline">
+        <Button 
+          onClick={() => handleTranslate("en")} 
+          variant="outline" 
+          disabled={isTranslating}
+        >
           <Globe className="mr-2 h-4 w-4" />
-          Translate
+          {isTranslating ? "Translating..." : "Translate"}
         </Button>
       </CardFooter>
     </Card>
