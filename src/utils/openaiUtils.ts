@@ -31,6 +31,30 @@ export const generateSocialPost = async (transcription: string) => {
 };
 
 export const translateText = async (text: string, targetLanguage: string) => {
-  const prompt = `Translate the following text to ${targetLanguage}: ${text}`;
+  const languageNames = {
+    en: "English",
+    es: "Spanish",
+    fr: "French",
+    de: "German",
+    it: "Italian",
+    pt: "Portuguese",
+    ru: "Russian",
+    ja: "Japanese",
+    ko: "Korean",
+    zh: "Chinese",
+    ar: "Arabic",
+    hi: "Hindi",
+    bn: "Bengali",
+    pa: "Punjabi",
+    te: "Telugu",
+    mr: "Marathi",
+    tr: "Turkish",
+    ta: "Tamil",
+    vi: "Vietnamese",
+    ur: "Urdu"
+  };
+
+  const languageName = languageNames[targetLanguage as keyof typeof languageNames] || targetLanguage;
+  const prompt = `Translate the following text to ${languageName}. Maintain the original meaning and tone: ${text}`;
   return generateContent(prompt);
 };

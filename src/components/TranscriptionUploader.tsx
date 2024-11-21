@@ -61,19 +61,17 @@ export const TranscriptionUploader = ({ onFileSelect }: TranscriptionUploaderPro
   const startRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ 
-        audio: {
-          echoCancellation: true,
-          noiseSuppression: true,
-          sampleRate: 44100
-        }
+        audio: true,
+        video: false 
       });
       
+      const options = {
+        mimeType: 'audio/webm;codecs=opus'
+      };
+      
+      const mediaRecorder = new MediaRecorder(stream, options);
       chunksRef.current = [];
       
-      const mediaRecorder = new MediaRecorder(stream, {
-        mimeType: 'audio/webm;codecs=opus'
-      });
-
       mediaRecorder.ondataavailable = (e) => {
         if (e.data.size > 0) {
           chunksRef.current.push(e.data);
@@ -86,11 +84,10 @@ export const TranscriptionUploader = ({ onFileSelect }: TranscriptionUploaderPro
         setFile(recordedFile);
         onFileSelect(recordedFile);
         stream.getTracks().forEach(track => track.stop());
-        chunksRef.current = [];
       };
 
       mediaRecorderRef.current = mediaRecorder;
-      mediaRecorder.start(1000); // Record in 1-second chunks
+      mediaRecorder.start();
       setIsRecording(true);
       
       toast({
