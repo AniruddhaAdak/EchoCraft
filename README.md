@@ -1,24 +1,40 @@
 
 # EchoCraft
 
-EchoCraft is a cutting-edge application that leverages AI to convert speech into text and create engaging content such as blogs and social media posts. It also supports translation of transcriptions into multiple languages, offering a comprehensive solution for content creators.
+EchoCraft is an AI-powered creator workspace that turns voice notes and audio uploads into polished transcripts, translations, blog drafts, and social-ready copy.
+
+![EchoCraft animated preview](docs/assets/echocraft-motion.svg)
+
+![EchoCraft home preview](docs/assets/echocraft-home.png)
+
+speech-to-text transcription content-creation content-generator blog-generator social-media translation multilingual generative-ai gemini creator-tools audio-processing voice-notes reactjs typescript vite tailwindcss frontend shadcn-ui assemblyai
+
+## Why EchoCraft
+
+- Convert spoken ideas into structured written content fast.
+- Translate transcripts for multilingual publishing workflows.
+- Generate blog and social drafts inside the same workspace.
+- Keep a cleaner creator flow from audio capture to final copy.
+
+## Visual Preview
+
+![EchoCraft workspace preview](docs/assets/echocraft-workspace.png)
 
 ## Features
 
 - **Speech-to-Text Conversion**: Transcribe spoken words into text using the AssemblyAI API.
-- **Content Creation**: Generate blogs and social media posts from transcriptions with built-in support for:
-  - Like
-  - Comment
-  - Share
+- **Content Creation**: Generate blog drafts and social-ready copy directly from transcripts.
 - **Multilingual Support**: Translate transcriptions into other languages seamlessly.
-- **Modern UI/UX**: Built with React.js, TypeScript, and Tailwind CSS for a responsive and dynamic interface.
+- **Modern UI/UX**: Built with React, TypeScript, Tailwind CSS, and shadcn/ui for a responsive and animated interface.
+- **Session Recall**: Revisit recent transcript sessions from local history.
+- **Export Tools**: Copy, download, and export transcript content for downstream use.
 
 ## Tech Stack
 
-- **Frontend**: React.js, TypeScript, Tailwind CSS
+- **Frontend**: React.js, TypeScript, Tailwind CSS, shadcn/ui, Vite
 - **APIs**:
   - [AssemblyAI API](https://www.assemblyai.com) for speech-to-text conversion
-  - [OpenAI API](https://openai.com) for content generation and translation
+   - [Google Gemini API](https://ai.google.dev/) for content generation and translation
 
 ## Installation
 
@@ -48,14 +64,16 @@ EchoCraft is a cutting-edge application that leverages AI to convert speech into
 ## Usage
 
 1. Record or upload audio to transcribe speech into text.
-2. Use the generated transcript to create:
-   - Blogs with automatic formatting and styling.
-   - Social media posts with like, comment, and share functionalities.
-3. Translate transcriptions into other languages to reach a broader audience.
+2. Review the generated transcript, insights, and exports.
+3. Translate the transcript when you need a different audience language.
+4. Generate blog drafts or social media content from the same workspace.
+5. Open the post workspace to refine, copy, share, or download generated content.
 
-## Screenshots
+## Discoverability Topics
 
-*Coming soon!*
+The repository is tagged with these GitHub topics:
+
+`assemblyai` `speech-to-text` `transcription` `content-creation` `content-generator` `blog-generator` `social-media` `translation` `multilingual` `generative-ai` `gemini` `creator-tools` `audio-processing` `voice-notes` `reactjs` `typescript` `vite` `tailwindcss` `frontend` `shadcn-ui`
 
 ## Contribution
 
@@ -79,6 +97,6 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 
 For queries or feedback, contact:
 - **Email**: [aniruddhaadak80@gmail.com](mailto:aniruddhaadak80@gmail.com)
-- **GitHub**: [GitHub Profile](https://github.com/yourusername)
+- **GitHub**: [GitHub Profile](https://github.com/AniruddhaAdak)
 
 ---
