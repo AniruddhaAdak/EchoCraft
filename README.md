@@ -61,6 +61,16 @@ EchoCraft is a cutting-edge application that leverages AI to convert speech into
 
 Contributions are welcome! Feel free to open issues or submit pull requests.
 
+## Daily Automation
+
+This repository includes a scheduled GitHub Actions workflow at `.github/workflows/daily-maintenance-pr.yml`.
+
+- It runs every day and can also be triggered manually from the Actions tab.
+- It installs dependencies, runs `npm run lint`, runs `npm run build`, and generates a dated report in `docs/daily-reports/`.
+- It opens a pull request instead of pushing directly to `main`, which keeps the automation reviewable.
+
+If you want to change the schedule, edit the `cron` entry in the workflow file.
+
 ## License
 
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.

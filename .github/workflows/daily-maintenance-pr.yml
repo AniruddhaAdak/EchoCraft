@@ -1,0 +1,75 @@
+name: Daily Maintenance PR
+
+on:
+  schedule:
+    - cron: '17 3 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  daily-maintenance:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Set report date
+        run: echo "REPORT_DATE=$(date -u +%F)" >> "$GITHUB_ENV"
+
+      - name: Run lint
+        shell: bash
+        run: |
+          mkdir -p .daily-automation
+          set +e
+          npm run lint > .daily-automation/lint.log 2>&1
+          echo "LINT_STATUS=$?" >> "$GITHUB_ENV"
+          exit 0
+
+      - name: Run build
+        shell: bash
+        run: |
+          mkdir -p .daily-automation
+          set +e
+          npm run build > .daily-automation/build.log 2>&1
+          echo "BUILD_STATUS=$?" >> "$GITHUB_ENV"
+          exit 0
+
+      - name: Generate daily report
+        run: node scripts/generate-daily-report.mjs
+        env:
+          BUILD_STATUS: ${{ env.BUILD_STATUS }}
+          GITHUB_SHA: ${{ github.sha }}
+          LINT_STATUS: ${{ env.LINT_STATUS }}
+          REPORT_DATE: ${{ env.REPORT_DATE }}
+
+      - name: Create pull request
+        uses: peter-evans/create-pull-request@v7
+        with:
+          branch: automation/daily-report-${{ env.REPORT_DATE }}
+          commit-message: 'chore: daily maintenance report (${{ env.REPORT_DATE }})'
+          title: 'chore: daily maintenance report (${{ env.REPORT_DATE }})'
+          body: |
+            This automated PR was created by the daily maintenance workflow.
+
+            It includes:
+            - A dated maintenance report in docs/daily-reports
+            - The latest lint result
+            - The latest build result
+
+            Merge it if the report looks acceptable.
+          delete-branch: true
