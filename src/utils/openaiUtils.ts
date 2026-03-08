@@ -1,11 +1,24 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { toast } from "@/hooks/use-toast";
+import { appConfig, hasRequiredKeys } from "@/utils/appConfig";
 
-const genAI = new GoogleGenerativeAI("AIzaSyAtE_9KV7A62idrl5mn2FCqD93IN0f5WNE");
+const getModel = () => {
+  if (!hasRequiredKeys.generation) {
+    toast({
+      variant: "destructive",
+      title: "Missing Gemini API key",
+      description: "Add VITE_GEMINI_API_KEY to your environment before generating content."
+    });
+    throw new Error("Missing Gemini API key");
+  }
+
+  const genAI = new GoogleGenerativeAI(appConfig.geminiApiKey);
+  return genAI.getGenerativeModel({ model: "gemini-pro" });
+};
 
 const generateContent = async (prompt: string) => {
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+    const model = getModel();
     const result = await model.generateContent(prompt);
     const response = await result.response;
     return response.text();

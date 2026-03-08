@@ -32,3 +32,20 @@ export const downloadTranscription = (text: string) => {
     description: "Transcription downloaded successfully"
   });
 };
+
+export const downloadJsonFile = (fileName: string, payload: unknown) => {
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = fileName;
+  document.body.appendChild(anchor);
+  anchor.click();
+  document.body.removeChild(anchor);
+  URL.revokeObjectURL(url);
+
+  toast({
+    title: "Success",
+    description: "JSON exported successfully"
+  });
+};

@@ -1,6 +1,6 @@
-import { useState, useRef } from "react";
+import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Upload, Mic } from "lucide-react";
+import { Upload, Mic, FileAudio, X, Sparkles } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 
@@ -18,18 +18,24 @@ const supportedFormats = [
 ];
 
 interface TranscriptionUploaderProps {
+  selectedFile: File | null;
   onFileSelect: (file: File) => void;
+  onClearSelection: () => void;
 }
 
-export const TranscriptionUploader = ({ onFileSelect }: TranscriptionUploaderProps) => {
-  const [file, setFile] = useState<File | null>(null);
+export const TranscriptionUploader = ({ selectedFile, onFileSelect, onClearSelection }: TranscriptionUploaderProps) => {
   const [isRecording, setIsRecording] = useState(false);
+  const [isDragActive, setIsDragActive] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<BlobPart[]>([]);
 
-  const validateFile = (file: File) => {
+  const validateFile = (file?: File) => {
+    if (!file) {
+      return false;
+    }
+
     if (supportedFormats.includes(file.type)) {
       return true;
     }
@@ -43,9 +49,9 @@ export const TranscriptionUploader = ({ onFileSelect }: TranscriptionUploaderPro
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
+    setIsDragActive(false);
     const droppedFile = e.dataTransfer.files[0];
     if (validateFile(droppedFile)) {
-      setFile(droppedFile);
       onFileSelect(droppedFile);
     }
   };
@@ -53,7 +59,6 @@ export const TranscriptionUploader = ({ onFileSelect }: TranscriptionUploaderPro
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
     if (selectedFile && validateFile(selectedFile)) {
-      setFile(selectedFile);
       onFileSelect(selectedFile);
     }
   };
@@ -81,7 +86,6 @@ export const TranscriptionUploader = ({ onFileSelect }: TranscriptionUploaderPro
       mediaRecorder.onstop = () => {
         const blob = new Blob(chunksRef.current, { type: 'audio/webm' });
         const recordedFile = new File([blob], "recorded-audio.webm", { type: 'audio/webm' });
-        setFile(recordedFile);
         onFileSelect(recordedFile);
         stream.getTracks().forEach(track => track.stop());
       };
@@ -126,11 +130,18 @@ export const TranscriptionUploader = ({ onFileSelect }: TranscriptionUploaderPro
   return (
     <div>
       <div
-        onDragOver={(e) => e.preventDefault()}
+        onDragOver={(e) => {
+          e.preventDefault();
+          setIsDragActive(true);
+        }}
+        onDragLeave={() => setIsDragActive(false)}
         onDrop={handleDrop}
         onClick={() => fileInputRef.current?.click()}
-        className="border-2 border-dashed border-purple-200 rounded-lg p-8 text-center cursor-pointer
-                   hover:border-purple-400 transition-colors duration-300"
+        className={`rounded-3xl border-2 border-dashed p-8 text-center transition-all duration-300 ${
+          isDragActive
+            ? "border-fuchsia-500 bg-fuchsia-50 shadow-lg"
+            : "border-fuchsia-200 bg-white/80 hover:border-fuchsia-400"
+        } cursor-pointer`}
       >
         <input
           ref={fileInputRef}
@@ -139,16 +150,49 @@ export const TranscriptionUploader = ({ onFileSelect }: TranscriptionUploaderPro
           accept=".mp3,.wav,.m4a,.flac,.ogg,.webm,.mp4"
           className="hidden"
         />
-        <Upload className="mx-auto mb-4 text-purple-500" size={40} />
-        <p className="text-purple-600 mb-2">{file ? file.name : "Click or drag file here"}</p>
+        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-fuchsia-100 text-fuchsia-600 shadow-inner">
+          <Upload size={32} />
+        </div>
+        <p className="mb-2 text-lg font-semibold text-slate-900">
+          {selectedFile ? selectedFile.name : "Drop audio here or browse your device"}
+        </p>
+        <p className="mb-4 text-sm text-slate-600">
+          Upload a recording or capture one live. EchoCraft turns it into a transcript, blog draft, and social copy.
+        </p>
         <div className="flex flex-wrap gap-2 justify-center">
           {supportedFormats.map(format => (
-            <Badge key={format} variant="secondary">
+            <Badge key={format} variant="secondary" className="bg-fuchsia-50 text-fuchsia-700">
               {format.split('/')[1]}
             </Badge>
           ))}
         </div>
       </div>
+      {selectedFile && (
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white/80 p-4 shadow-sm">
+          <div className="flex items-center gap-3">
+            <div className="rounded-xl bg-fuchsia-100 p-2 text-fuchsia-700">
+              <FileAudio className="h-4 w-4" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-slate-900">{selectedFile.name}</p>
+              <p className="text-xs text-slate-500">
+                {(selectedFile.size / (1024 * 1024)).toFixed(2)} MB • {selectedFile.type || "Unknown format"}
+              </p>
+            </div>
+          </div>
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={(event) => {
+              event.stopPropagation();
+              onClearSelection();
+            }}
+          >
+            <X className="mr-2 h-4 w-4" />
+            Clear
+          </Button>
+        </div>
+      )}
       <div className="mt-4 flex justify-center">
         <Button 
           onClick={(e) => {
@@ -156,11 +200,15 @@ export const TranscriptionUploader = ({ onFileSelect }: TranscriptionUploaderPro
             toggleRecording();
           }}
           variant={isRecording ? "destructive" : "outline"}
-          className="flex items-center gap-2"
+          className="flex items-center gap-2 rounded-full border-fuchsia-200 bg-white/80 px-6"
         >
           <Mic className={`h-4 w-4 ${isRecording ? 'animate-pulse' : ''}`} />
           {isRecording ? "Stop Recording" : "Record Audio"}
         </Button>
+      </div>
+      <div className="mt-3 flex items-center justify-center gap-2 text-xs text-slate-500">
+        <Sparkles className="h-3.5 w-3.5 text-fuchsia-500" />
+        Voice capture works best in a quiet environment with a close microphone.
       </div>
     </div>
   );

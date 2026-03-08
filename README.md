@@ -36,13 +36,13 @@ EchoCraft is a cutting-edge application that leverages AI to convert speech into
 3. Add your API keys:
    - Create a `.env` file in the project root and add the following:
      ```env
-     REACT_APP_ASSEMBLYAI_API_KEY=your_assemblyai_api_key
-     REACT_APP_OPENAI_API_KEY=your_openai_api_key
+     VITE_ASSEMBLYAI_API_KEY=your_assemblyai_api_key
+     VITE_GEMINI_API_KEY=your_gemini_api_key
      ```
 
 4. Start the development server:
    ```bash
-   npm start
+   npm run dev
    ```
 
 ## Usage
